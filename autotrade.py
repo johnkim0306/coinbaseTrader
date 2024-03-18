@@ -4,6 +4,8 @@ from coinbase.wallet.client import Client
 from dotenv import load_dotenv
 import requests
 import json
+import pandas as pd
+import pandas_ta as ta
 load_dotenv()
 
 
@@ -12,37 +14,52 @@ coinBaseclient = Client( os.getenv('API_KEY'), os.getenv('API_SECRET'))
 
 
 def get_coinbase_market_data():
-    # Define the API endpoint
     url = "https://api.pro.coinbase.com/products/BTC-USD/candles"
-
-    # Set the parameters for the request
     params = {
-        "granularity": 3600,  # 1-hour granularity
-        "limit": 10  # Number of data points
+        "granularity": 3600,  
+        "limit": 20
     }
-
-    # Make the API request
     response = requests.get(url, params=params)
 
-    # Check if the request was successful
     if response.status_code == 200:
         data = response.json()
-        # Extract relevant columns (Open, High, Low, Close, Volume)
-        columns = ["time", "open", "high", "low", "close", "volume"]
-        market_data = [{col: row[i] for i, col in enumerate(columns)} for row in data]
-        return market_data
+        df = pd.DataFrame(data, columns=['time', 'low', 'high', 'open', 'close', 'volume'])
+        df = df[::-1]
+        # Convert timestamp to datetime
+        df['time'] = pd.to_datetime(df['time'], unit='s')
+        
+        # Calculate SMA, RSI Bollinger Bands, EMA
+        df['sma_10'] = ta.sma(df['close'], length=10)
+        df['rsi_14'] = ta.rsi(df['close'], length=14)
+        
+        # Calculate Stochastic Oscillator (%K and %D)
+        stoch_k, stoch_d = ta.stoch(high=df['high'], low=df['low'], close=df['close'])
+        df['stoch_k'] = stoch_k
+        df['stoch_d'] = stoch_d
+
+        # Calculate Bollinger Bands (BBL, BBM, BBU)
+        bbands = ta.bbands(close=df['close'])
+        df['bbands_lower'] = bbands['BBL_5_2.0']
+        df['bbands_middle'] = bbands['BBM_5_2.0']
+        df['bbands_upper'] = bbands['BBU_5_2.0']
+
+        # EMA
+        df['ema'] = ta.ema(close=df['close'])
+
+        # print(df.tail(15))
+        return df
     else:
         print(f"Error fetching data. Status code: {response.status_code}")
         return None
 
 def get_accounts_info():
     accounts = coinBaseclient.get_accounts()
-    print(accounts)
+    # print(accounts)
     return accounts
 
 def get_buy_price():
     hist_price = coinBaseclient.get_buy_price()
-    print(hist_price)
+    # print(hist_price)
     return hist_price
 
 def fetch_and_prepare_data():
@@ -59,7 +76,9 @@ def get_instructions(file_path):
     except Exception as e:
         print("An error occurred while reading the file:", e)
 
-def analyze_data_with_gpt4(data_json):
+def analyze_data_with_gpt4(Message, MarketIndicator):
+    print(Message)
+    print(MarketIndicator)
     instructions_path = "instructions.md"
     try:
         instructions = get_instructions(instructions_path)
@@ -75,14 +94,13 @@ def analyze_data_with_gpt4(data_json):
             print("No averagePrice found.")
             return None
 
-
-        # current_status = get_current_status()
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": instructions},
                 {"role": "user", "content": accounts},
                 {"role": "user", "content": averagePrice},
+                {"role": "user", "content": MarketIndicator},
             ],
             # response_format={"type":"json_object"}
         )
@@ -92,22 +110,21 @@ def analyze_data_with_gpt4(data_json):
         return None
 
 def openaiTesting():
-    data_json = fetch_and_prepare_data()
-    print(data_json)
-    advice = analyze_data_with_gpt4(data_json)
+    Message = fetch_and_prepare_data()
+    # print(Message)
+    MarketIndicator = get_coinbase_market_data()
+    if not MarketIndicator.empty:
+        print("Market Indicator Received")
+    else:
+        print("Failed to fetch market data from Coinbase API.")
+    advice = analyze_data_with_gpt4(Message, MarketIndicator)
     print(advice)
     print("swag")
     # print(advice)
 
 
 if __name__ == "__main__":
-    market_data = get_coinbase_market_data()
-    if market_data:
-        for entry in market_data:
-            print(entry)
-    else:
-        print("Failed to fetch market data from Coinbase API.")
-    # openaiTesting()
+    openaiTesting()
     # make_decision_and_execute()
     # schedule.every().hour.at(":01").do(make_decision_and_execute)
 
