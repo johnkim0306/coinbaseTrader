@@ -1,3 +1,6 @@
 openai
 coinbase
 python-dotenv
+requests
+pandas
+pandas_ta

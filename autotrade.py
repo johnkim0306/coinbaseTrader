@@ -2,6 +2,7 @@ import os
 from openai import OpenAI
 from coinbase.wallet.client import Client
 from dotenv import load_dotenv
+import requests
 import json
 load_dotenv()
 
@@ -9,9 +10,40 @@ load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 coinBaseclient = Client( os.getenv('API_KEY'), os.getenv('API_SECRET'))
 
-accounts = coinBaseclient.get_accounts()
-for account in accounts:
-    print('Account balance:', account.balance.amount, account.balance.currency)
+
+def get_coinbase_market_data():
+    # Define the API endpoint
+    url = "https://api.pro.coinbase.com/products/BTC-USD/candles"
+
+    # Set the parameters for the request
+    params = {
+        "granularity": 3600,  # 1-hour granularity
+        "limit": 10  # Number of data points
+    }
+
+    # Make the API request
+    response = requests.get(url, params=params)
+
+    # Check if the request was successful
+    if response.status_code == 200:
+        data = response.json()
+        # Extract relevant columns (Open, High, Low, Close, Volume)
+        columns = ["time", "open", "high", "low", "close", "volume"]
+        market_data = [{col: row[i] for i, col in enumerate(columns)} for row in data]
+        return market_data
+    else:
+        print(f"Error fetching data. Status code: {response.status_code}")
+        return None
+
+def get_accounts_info():
+    accounts = coinBaseclient.get_accounts()
+    print(accounts)
+    return accounts
+
+def get_buy_price():
+    hist_price = coinBaseclient.get_buy_price()
+    print(hist_price)
+    return hist_price
 
 def fetch_and_prepare_data():
     combined_data = 'Do you recgonize this tell me if you understood what i sent you '
@@ -34,14 +66,23 @@ def analyze_data_with_gpt4(data_json):
         if not instructions:
             print("No instructions found.")
             return None
+        accounts = get_accounts_info()
+        if not accounts:
+            print("No averagePrice found.")
+            return None
+        averagePrice = get_buy_price()
+        if not averagePrice:
+            print("No averagePrice found.")
+            return None
+
 
         # current_status = get_current_status()
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are a helpful assistant"},
-                {"role": "user", "content": "Hello my name is John how are you?"},
-                # {"role": "user", "content": current_status}
+                {"role": "system", "content": instructions},
+                {"role": "user", "content": accounts},
+                {"role": "user", "content": averagePrice},
             ],
             # response_format={"type":"json_object"}
         )
@@ -60,7 +101,13 @@ def openaiTesting():
 
 
 if __name__ == "__main__":
-    openaiTesting()
+    market_data = get_coinbase_market_data()
+    if market_data:
+        for entry in market_data:
+            print(entry)
+    else:
+        print("Failed to fetch market data from Coinbase API.")
+    # openaiTesting()
     # make_decision_and_execute()
     # schedule.every().hour.at(":01").do(make_decision_and_execute)
 
