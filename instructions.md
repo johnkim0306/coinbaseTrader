@@ -66,6 +66,32 @@ Example structure for JSON Data 2 (Market Analysis Data) is as follows:
 
 ```
 
+### JSON Data 3: Market Analysis Data
+- **Purpose**: Provides comprehensive analytics on the Cryptocurrency trading pair to facilitate market trend analysis and guide investment decisions.
+- **Contents**:
+- `columns`: Average Price that user bought it's correspnoidng cryptocurrency at.
+- `base`: cryptocurrency symbol; shows the cryptocurrency symbol that users have.
+- `currency`: Currency that user bought the cryptocurrency.
+Example of strucutre for JSON Data is as follows:
+```json 
+{
+    "time":"<Time>",
+    "low":65505.33,"high":66394.89,
+    "open":65863.61,
+    "close":65844.2,
+    "volume":993.53721784,
+    "sma_10":67040.309,
+    "rsi_14":34.2339263501,
+    "stoch_k":"STOCHk_14_3_3",
+    "stoch_d":"STOCHd_14_3_3",
+    "bbands_lower":65179.3694245272,
+    "bbands_middle":66821.896,
+    "bbands_upper":68464.4225754728,
+    "ema":66907.6991598741
+}
+```
+
+
 ## Technical Indicator Glossary
 - **SMA_10 & EMA_10**: Short-term moving averages that help identify immediate trend directions. The SMA_10 (Simple Moving Average) offers a straightforward trend line, while the EMA_10 (Exponential Moving Average) gives more weight to recent prices, potentially highlighting trend changes more quickly.
 - **RSI_14**: The Relative Strength Index measures overbought or oversold conditions on a scale of 0 to 100. Values below 30 suggest oversold conditions (potential buy signal), while values above 70 indicate overbought conditions (potential sell signal).
