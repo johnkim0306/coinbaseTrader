@@ -6,6 +6,7 @@ import requests
 import json
 import pandas as pd
 import pandas_ta as ta
+import schedule
 load_dotenv()
 
 
@@ -134,6 +135,35 @@ def analyze_data_with_gpt4(Message, MarketIndicator):
         print(f"Error in analyzing data with GPT-4: {e}")
         return None
 
+def execute_buy():
+    try:
+        currency_code = 'BTC'
+        accounts = coinBaseclient.get_accounts()
+        account = next(acc for acc in accounts if acc.currency.code == currency_code)
+        balance = account.balance
+
+        print(f"Balance for {currency_code}: {balance}")
+
+        buy_response = coinBaseclient.buy(product_id=product_id, amount=amount, currency='USD')
+        print("Buy order successful:", buy_response)
+    except Exception as e:
+        print(f"Failed to execute buy order: {e}")
+
+def execute_sell():
+    try:
+        currency_code = 'BTC'
+        accounts = coinBaseclient.get_accounts()
+        account = next(acc for acc in accounts if acc.currency.code == currency_code)
+        balance = account.balance
+
+        print(f"Balance for {currency_code}: {balance}")
+
+        sell_response = coinBaseclient.sell(product_id=product_id, amount=amount, currency='USD')
+        print("Sell order successful:", sell_response)
+    except Exception as e:
+        print(f"Failed to execute sell order: {e}")
+
+
 def openaiTesting():
     Message = fetch_and_prepare_data()
     # print(Message)
@@ -146,13 +176,21 @@ def openaiTesting():
     advice = analyze_data_with_gpt4(Message, MarketIndicator)
     print(advice)
     print("swag")
-    # print(advice)
+    try:
+        decision = json.loads(advice)
+        print(decision)
+        print(decision.get('decision'))
+        if decision.get('decision') == "buy":
+            execute_buy()
+        elif decision.get('decision') == "sell":
+            execute_sell()
+    except Exception as e:
+        print(f"Failed to parse the advice as JSON: {e}")
 
 
 if __name__ == "__main__":
     openaiTesting()
-    # make_decision_and_execute()
-    # schedule.every().hour.at(":01").do(make_decision_and_execute)
+    schedule.every().hour.at(":01").do(openaiTesting)
 
     # while True:
     #     schedule.run_pending()

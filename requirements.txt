@@ -4,3 +4,4 @@ python-dotenv
 requests
 pandas
 pandas_ta
+schedule
