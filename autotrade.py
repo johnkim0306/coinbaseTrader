@@ -7,6 +7,7 @@ import json
 import pandas as pd
 import pandas_ta as ta
 import schedule
+import time
 load_dotenv()
 
 
@@ -192,6 +193,6 @@ if __name__ == "__main__":
     openaiTesting()
     schedule.every().hour.at(":01").do(openaiTesting)
 
-    # while True:
-    #     schedule.run_pending()
-    #     time.sleep(1)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
