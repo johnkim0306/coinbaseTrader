@@ -10,7 +10,6 @@ import schedule
 import time
 load_dotenv()
 
-
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 coinBaseclient = Client( os.getenv('API_KEY'), os.getenv('API_SECRET'))
 
@@ -73,7 +72,6 @@ def get_accounts_info():
 
 def get_buy_price():
     hist_price = coinBaseclient.get_buy_price()
-    # print(hist_price)
     try:
         # Attempt to load the data as JSON
         json_data = json.dumps(hist_price)
@@ -175,8 +173,6 @@ def openaiTesting():
     # else:
     #     print("Failed to fetch market data from Coinbase API.")
     advice = analyze_data_with_gpt4(Message, MarketIndicator)
-    print(advice)
-    print("swag")
     try:
         decision = json.loads(advice)
         print(decision)
