@@ -66,7 +66,6 @@ def get_accounts_info():
         return json_data
     except json.JSONDecodeError:
         # If loading as JSON fails, it means the data is not in JSON format
-        # You can handle this case accordingly, for example, by printing a message or returning None
         print("Data is not in JSON format.")
         return None
 
@@ -78,7 +77,6 @@ def get_buy_price():
         return json_data
     except json.JSONDecodeError:
         # If loading as JSON fails, it means the data is not in JSON format
-        # You can handle this case accordingly, for example, by printing a message or returning None
         print("Data is not in JSON format.")
         return None
 
@@ -97,15 +95,12 @@ def get_instructions(file_path):
         print("An error occurred while reading the file:", e)
 
 def analyze_data_with_gpt4(Message, MarketIndicator):
-    # print(Message)
-    # print(MarketIndicator)
     instructions_path = "instructions.md"
     try:
         instructions = get_instructions(instructions_path)
         if not instructions:
             print("No instructions found.")
             return None
-        # print(instructions)
         accounts = get_accounts_info()
         if not accounts:
             print("No averagePrice found.")
@@ -114,9 +109,6 @@ def analyze_data_with_gpt4(Message, MarketIndicator):
         if not averagePrice:
             print("No averagePrice found.")
             return None
-        
-        # print(accounts)
-        # print(averagePrice)
 
         response = client.chat.completions.create(
             model="gpt-4-turbo-preview",
@@ -126,7 +118,6 @@ def analyze_data_with_gpt4(Message, MarketIndicator):
                 {"role": "user", "content": averagePrice},
                 {"role": "user", "content": MarketIndicator},
             ],
-            # response_format={"type":"json_object"}
         )
         print(response)
         return response.choices[0].message.content
@@ -165,13 +156,7 @@ def execute_sell():
 
 def openaiTesting():
     Message = fetch_and_prepare_data()
-    # print(Message)
     MarketIndicator = get_coinbase_market_data()
-    # print(MarketIndicator)
-    # if isinstance(MarketIndicator, pd.DataFrame) and not MarketIndicator.empty:
-    #     print("Market Indicator Received")
-    # else:
-    #     print("Failed to fetch market data from Coinbase API.")
     advice = analyze_data_with_gpt4(Message, MarketIndicator)
     try:
         decision = json.loads(advice)
