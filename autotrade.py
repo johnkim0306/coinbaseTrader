@@ -1,6 +1,7 @@
 import os
 from openai import OpenAI
 from coinbase.wallet.client import Client
+from coinbase.rest import RESTClient
 from dotenv import load_dotenv
 import requests
 import json
@@ -8,10 +9,19 @@ import pandas as pd
 import pandas_ta as ta
 import schedule
 import time
+import boto3
+
 load_dotenv()
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-coinBaseclient = Client( os.getenv('API_KEY'), os.getenv('API_SECRET'))
+
+# client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+#coinBaseclient = Client( os.getenv('API_KEY'), os.getenv('API_SECRET'))
+coinBaseclient = RESTClient( os.getenv('API_KEY'), os.getenv('API_SECRET'))
+# coinBaseclient = RESTClient(api_key=api_key, api_secret=api_secret)
+
+
+s3 = boto3.resource('s3')
+
 
 
 def get_coinbase_market_data():
@@ -58,8 +68,10 @@ def get_coinbase_market_data():
         return None
 
 def get_accounts_info():
+    print("inside get_accounts_info")
     accounts = coinBaseclient.get_accounts()
     print(accounts)
+
     try:
         # Attempt to load the data as JSON
         json_data = json.dumps(accounts)
@@ -128,7 +140,9 @@ def analyze_data_with_gpt4(Message, MarketIndicator):
 def execute_buy():
     try:
         currency_code = 'BTC'
+        print(currency_code)
         accounts = coinBaseclient.get_accounts()
+        print(accounts)
         account = next(acc for acc in accounts if acc.currency.code == currency_code)
         balance = account.balance
 
@@ -153,26 +167,38 @@ def execute_sell():
     except Exception as e:
         print(f"Failed to execute sell order: {e}")
 
-
+decision = 'buy'
 def openaiTesting():
-    Message = fetch_and_prepare_data()
-    MarketIndicator = get_coinbase_market_data()
-    advice = analyze_data_with_gpt4(Message, MarketIndicator)
+    # Message = fetch_and_prepare_data()
+    # MarketIndicator = get_coinbase_market_data()
+    # advice = analyze_data_with_gpt4(Message, MarketIndicator)
+    global decision
     try:
-        decision = json.loads(advice)
+        # decision = json.loads(advice)
+        # print(decision)
+        # print(decision.get('decision'))
+        # if decision.get('decision') == "buy":
+        #     execute_buy()
+        # elif decision.get('decision') == "sell":
+        #     execute_sell()
+        accounts = get_accounts_info()
+        # print(accounts)
+        if decision == 'buy':
+            decision = 'sell'
+        elif decision == 'sell':
+            decision = 'buy'
         print(decision)
-        print(decision.get('decision'))
-        if decision.get('decision') == "buy":
-            execute_buy()
-        elif decision.get('decision') == "sell":
-            execute_sell()
+
+        # execute_buy()
     except Exception as e:
         print(f"Failed to parse the advice as JSON: {e}")
 
 
 if __name__ == "__main__":
     openaiTesting()
-    schedule.every().hour.at(":01").do(openaiTesting)
+    # schedule.every().hour.at(":01").do(openaiTesting)
+    schedule.every(5).seconds.do(openaiTesting)
+
 
     while True:
         schedule.run_pending()

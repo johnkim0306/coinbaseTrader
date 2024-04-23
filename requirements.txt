@@ -5,3 +5,5 @@ requests
 pandas
 pandas_ta
 schedule
+coinbase-advanced-py
+boto3
