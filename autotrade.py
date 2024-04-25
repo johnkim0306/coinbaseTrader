@@ -10,19 +10,24 @@ import pandas_ta as ta
 import schedule
 import time
 import boto3
+from io import BytesIO
 
 load_dotenv()
 
 
 # client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 #coinBaseclient = Client( os.getenv('API_KEY'), os.getenv('API_SECRET'))
-coinBaseclient = RESTClient( os.getenv('API_KEY'), os.getenv('API_SECRET'))
+coinBaseclient = RESTClient( os.getenv('API_KEY2'), os.getenv('API_SECRET2'))
 # coinBaseclient = RESTClient(api_key=api_key, api_secret=api_secret)
 
 
-s3 = boto3.resource('s3')
+s3 = boto3.client('s3')
+# s3.upload_file('some-text', 'cryptocurrencys3', 'some-text')
 
-
+# Upload a text string to S3
+text_content = "This is a test text file."
+file_obj = BytesIO(text_content.encode())
+s3.upload_fileobj(file_obj, 'cryptocurrencys3', 'information/test-text.txt')
 
 def get_coinbase_market_data():
     url = "https://api.pro.coinbase.com/products/BTC-USD/candles"
@@ -182,6 +187,12 @@ def openaiTesting():
         # elif decision.get('decision') == "sell":
         #     execute_sell()
         accounts = get_accounts_info()
+        # Upload a text string to S3
+        text_content = accounts
+        elapsed_time = time.time()
+        file_obj = BytesIO(text_content.encode())
+        s3.upload_fileobj(file_obj, 'cryptocurrencys3', f'information/{elapsed_time}Execution.txt')
+
         # print(accounts)
         if decision == 'buy':
             decision = 'sell'
