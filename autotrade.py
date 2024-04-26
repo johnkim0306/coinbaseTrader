@@ -25,9 +25,9 @@ s3 = boto3.client('s3')
 # s3.upload_file('some-text', 'cryptocurrencys3', 'some-text')
 
 # Upload a text string to S3
-text_content = "This is a test text file."
-file_obj = BytesIO(text_content.encode())
-s3.upload_fileobj(file_obj, 'cryptocurrencys3', 'information/test-text.txt')
+# text_content = "This is a test text file."
+# file_obj = BytesIO(text_content.encode())
+# s3.upload_fileobj(file_obj, 'cryptocurrencys3', 'information/test-text.txt')
 
 def get_coinbase_market_data():
     url = "https://api.pro.coinbase.com/products/BTC-USD/candles"
