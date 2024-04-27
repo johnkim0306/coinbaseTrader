@@ -155,8 +155,10 @@ def execute_buy():
 
         buy_response = coinBaseclient.buy(product_id=product_id, amount=amount, currency='USD')
         print("Buy order successful:", buy_response)
+        return buy_response
     except Exception as e:
         print(f"Failed to execute buy order: {e}")
+        return False
 
 def execute_sell():
     try:
@@ -169,8 +171,10 @@ def execute_sell():
 
         sell_response = coinBaseclient.sell(product_id=product_id, amount=amount, currency='USD')
         print("Sell order successful:", sell_response)
+        return sell_response
     except Exception as e:
         print(f"Failed to execute sell order: {e}")
+        return False
 
 decision = 'buy'
 def openaiTesting():
