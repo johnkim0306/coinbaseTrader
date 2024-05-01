@@ -55,11 +55,7 @@ def get_coinbase_market_data():
         df['ema'] = ta.ema(close=df['close'])
 
         json_data = df.to_json(orient="records", date_format="iso")
-        # print(json_data)
         return json_data
-
-        # print(df.tail(15))
-        # return df
     else:
         print(f"Error fetching data. Status code: {response.status_code}")
         return None
@@ -70,22 +66,18 @@ def get_accounts_info():
     print(accounts)
 
     try:
-        # Attempt to load the data as JSON
         json_data = json.dumps(accounts)
         return json_data
     except json.JSONDecodeError:
-        # If loading as JSON fails, it means the data is not in JSON format
         print("Data is not in JSON format.")
         return None
 
 def get_buy_price():
     hist_price = coinBaseclient.get_buy_price()
     try:
-        # Attempt to load the data as JSON
         json_data = json.dumps(hist_price)
         return json_data
     except json.JSONDecodeError:
-        # If loading as JSON fails, it means the data is not in JSON format
         print("Data is not in JSON format.")
         return None
 
